@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Cabecera Superior (Navbar) -->
+<header class="navbar">
+    <div class="nav-left">
+        <div class="logo">
+            <span class="logo-dot"></span>
+            <h1>Voltrex</h1>
+        </div>
+        <nav class="nav-links">
+            <a href="#" class="active">Trade</a>
+            <a href="#">Vault</a>
+            <a href="#"><i class="fa-solid fa-fire"></i> Compete</a>
+            <a href="#">Activity</a>
+            <a href="#">Referrals</a>
+            <a href="#">More <i class="fa-solid fa-chevron-down"></i></a>
+        </nav>
+    </div>
+    
+    <div class="nav-right">
+        <!-- Indicador de conexión a MT5 / Simulador -->
+        <div class="status-indicator" id="mt5-status-badge">
+            <span class="pulse-dot grey"></span>
+            <span class="status-text">Cargando...</span>
+        </div>
+        
+        <!-- Balance e Información de Cuenta -->
+        <div class="balance-display">
+            <span class="balance-label">Balance:</span>
+            <span class="balance-value" id="nav-balance">0.00 USD</span>
+        </div>
+        
+        <button class="btn btn-secondary btn-sm" id="btn-faucet">
+            <i class="fa-solid fa-droplet"></i> Faucet
+        </button>
+        
+        <div class="profile-wallet">
+            <i class="fa-solid fa-wallet"></i>
+            <span class="wallet-address">0xARU...2026</span>
+        </div>
+    </div>
+</header>
+
+<main class="dashboard-grid">
+    <!-- COLUMNA IZQUIERDA: Métricas, Gráficos y Tabla de Posiciones -->
+    <section class="main-content">
+        
+        <!-- Tarjetas de KPIs Superiores -->
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <span class="kpi-label">TVL (Simulado)</span>
+                <span class="kpi-value text-green">$34,081,818</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label" id="symbol-price-label">Precio EURUSD</span>
+                <span class="kpi-value" id="kpi-asset-price">$1.08542</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Collateral Ratio</span>
+                <span class="kpi-value text-purple">100.07%</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Equidad</span>
+                <span class="kpi-value" id="kpi-equity">0.00 USD</span>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-label">Margen Libre</span>
+                <span class="kpi-value" id="kpi-free-margin">0.00 USD</span>
+            </div>
+            <div class="kpi-card epoch-card">
+                <div class="epoch-info">
+                    <i class="fa-solid fa-calendar-days text-gold"></i>
+                    <div>
+                        <span class="epoch-label">Estado del Bot</span>
+                        <span class="epoch-value" id="kpi-bot-running">Inactivo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Panel Orquestador de Activos y Estrategias -->
+        <div class="assets-control-center card">
+            <div class="assets-control-header">
+                <div class="header-title-wrapper">
+                    <i class="fa-solid fa-layer-group text-purple" style="font-size: 20px;"></i>
+                    <div class="title-details">
+                        <h2>Panel Orquestador Multiactivo</h2>
+                        <span class="sub-label">Asigna estrategias y ratios de gestión de riesgo individuales</span>
+                    </div>
+                </div>
+                
+                <!-- Buscador / Selector rápido para habilitar activos -->
+                <div class="add-asset-orquestrator">
+                    <select id="central-select-symbol" class="form-control-sm">
+                        {% for sym in symbols %}
+                        <option value="{{ sym }}">{{ sym }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-central-add-symbol">
+                        <i class="fa-solid fa-plus"></i> Habilitar Activo
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de Configuración Masiva / Rápida -->
+            <div class="global-config-bar">
+                <span class="global-bar-label"><i class="fa-solid fa-wand-magic-sparkles text-purple"></i> Configuración Rápida Global:</span>
+                <div class="global-selectors">
+                    <div class="global-selector-group">
+                        <label>Estrategia</label>
+                        <select id="global-select-strategy" class="form-control-sm">
+                            <option value="rsi_experto">RSI Experto</option>
+                            <option value="bloque_emas">Bloque de EMAs</option>
+                            <option value="order_blocks">Order Blocks</option>
+                            <option value="canales">Canales y Soportes</option>
+                            <option value="de_prueba">Estrategia de Prueba (Test)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="global-selector-group">
+                        <label>Temporalidad</label>
+                        <select id="global-select-timeframe" class="form-control-sm">
+                            <option value="M1">1 minuto (1m)</option>
+                            <option value="M5">5 minutos (5m)</option>
+                            <option value="M15">15 minutos (15m)</option>
+                            <option value="M30">30 minutos (30m)</option>
+                            <option value="H1">1 hora (1h)</option>
+                            <option value="H4">4 horas (4h)</option>
+                            <option value="D1">1 día (1d)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="global-selector-group">
+                        <label>Gestión Riesgo</label>
+                        <select id="global-select-risk" class="form-control-sm">
+                            <option value="1:1">R:R 1:1</option>
+                            <option value="1:2" selected>R:R 1:2</option>
+                            <option value="1:3">R:R 1:3</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary btn-sm" id="btn-apply-global-config">
+                        <i class="fa-solid fa-check-double"></i> Aplicar a Todos
+                    </button>
+                </div>
+            </div>
+            
+            <div class="assets-grid-wrapper">
+                <div class="assets-grid" id="assets-grid-container">
+                    <!-- Tarjetas de activos inyectadas dinámicamente con Javascript -->
+                    <div class="no-assets-state">
+                        <i class="fa-solid fa-network-wired text-purple" style="font-size: 36px; margin-bottom: 10px; opacity: 0.7;"></i>
+                        <p>No hay activos configurados en el orquestador.</p>
+                        <span>Utiliza el selector superior para habilitar los activos que deseas operar automáticamente.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabla de Posiciones Abiertas -->
+        <div class="positions-container card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-list-check"></i> Posiciones en Vivo</h2>
+                <span class="positions-count" id="positions-count-badge">0 Posiciones</span>
+            </div>
+            
+            <div class="table-wrapper">
+                <table class="data-table" id="positions-table">
+                    <thead>
+                        <tr>
+                            <th>Ticket</th>
+                            <th>Símbolo</th>
+                            <th>Tipo</th>
+                            <th>Lote</th>
+                            <th>P. Entrada</th>
+                            <th>P. Actual</th>
+                            <th>Beneficio</th>
+                            <th>Estrategia</th>
+                            <th>Hora Apertura</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Se llena dinámicamente con JS -->
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">
+                                <i class="fa-solid fa-spinner fa-spin mr-2"></i> Cargando posiciones...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Logs y Estado de Consola del Bot -->
+        <div class="console-container card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-terminal"></i> Actividad del Algoritmo</h2>
+            </div>
+            <div class="console-body" id="console-logs">
+                <div class="console-line"><span class="timestamp">[16:06:04]</span> Inicializando motor orquestador...</div>
+            </div>
+        </div>
+        
+    </section>
+    
+    <!-- COLUMNA DERECHA: Configuración del Bot y Órdenes Manuales -->
+    <section class="side-panel">
+        
+        <!-- Tarjeta de Configuración del Bot -->
+        <div class="control-card card">
+            <div class="card-header-main">
+                <div class="header-icon-title">
+                    <i class="fa-solid fa-robot"></i>
+                    <h2>Configuración del Bot</h2>
+                </div>
+                <!-- Botón de Encendido / Apagado Principal -->
+                <button class="bot-toggle-btn" id="btn-toggle-bot">
+                    <i class="fa-solid fa-power-off"></i> ENCEBER
+                </button>
+            </div>
+            <form id="settings-form" class="form-grid">
+                
+                <div class="form-group">
+                    <label for="select-risk">Gestión de Riesgo</label>
+                    <select id="select-risk" class="form-control">
+                        <option value="lote_fijo" {% if settings and settings.risk_type == 'lote_fijo' %}selected{% endif %}>Lote Fijo</option>
+                        <option value="riesgo_porcentaje" {% if settings and settings.risk_type == 'riesgo_porcentaje' %}selected{% endif %}>Riesgo en % del Balance</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="input-volume" id="volume-label">Tamaño Entrada (Lotes)</label>
+                    <input type="number" step="0.01" min="0.01" id="input-volume" class="form-control" value="0.01" readonly style="opacity: 0.6; cursor: not-allowed;" title="Lote bloqueado a 0.01 por seguridad de la cuenta.">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block" id="btn-save-settings">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar Configuración General
+                </button>
+            </form>
+        </div>
+        
+        <!-- Tarjeta de Órdenes Manuales Rápidas -->
+        <div class="control-card card manual-trade-card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-bolt-lightning"></i> Ejecución Manual Rápida</h2>
+            </div>
+            
+            <div class="manual-trade-body">
+                <div class="form-group">
+                    <label for="manual-lot">Lote a Operar</label>
+                    <input type="number" step="0.01" min="0.01" id="manual-lot" class="form-control" value="0.01" readonly style="opacity: 0.6; cursor: not-allowed;" title="Lote bloqueado a 0.01 por seguridad de la cuenta.">
+                </div>
+                
+                <div class="trade-buttons">
+                    <button class="btn btn-success btn-trade" id="btn-manual-buy">
+                        <i class="fa-solid fa-arrow-trend-up"></i> COMPRA (BUY)
+                    </button>
+                    <button class="btn btn-danger btn-trade" id="btn-manual-sell">
+                        <i class="fa-solid fa-arrow-trend-down"></i> VENTA (SELL)
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Historial Reciente de Operaciones Cerradas -->
+        <div class="history-card card">
+            <div class="card-header">
+                <h2><i class="fa-regular fa-folder-closed"></i> Historial Reciente</h2>
+            </div>
+            <div class="history-list" id="history-items">
+                <!-- Se llena dinámicamente -->
+                <div class="text-center text-muted py-3">No hay historial cerrado aún.</div>
+            </div>
+        </div>
+        
+    </section>
+</main>
+{% endblock %}
